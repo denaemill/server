@@ -139,7 +139,7 @@ while not stopping.stop:
         thread.start()
         # This has the effect of blocking the current thread until
         # ... the target thread that has been joined has terminated.
-        # thread.join()
+        thread.join()
 
         # Updates the number ordering of the threading and files being
         # ... saved into the directory
