@@ -3,7 +3,7 @@
 import socket
 import sys
 import signal
-import os.path
+import os
 import threading
 
 ##############################################################################
@@ -25,18 +25,17 @@ class Stopper:
 # ... then after receiving the "confirm-accio-again\r\n\r\n" command
 # ... from the client it the procedure reads in the file from the client
 # ... bit by bit, returns the amount of bits
-def proc(clientSock, num):
+def proc(clientSock, save_path, num):
     # Getting two commands from the connection
     try:
 
         i = 0
-        total = 0
         msg = b""
         clientSock.send(b"accio\r\n")
 
         while i < 2:
 
-            # Recieves commands from the server bit by bit
+            # Receives commands from the server bit by bit
             while True:
                 m = clientSock.recv(1)
 
@@ -75,10 +74,10 @@ def proc(clientSock, num):
         if i == 2:
 
             # Forming the path to the directory of which the file will be saved
-            completeDir = save_path + "/%d.file" % num
+            completeDir = save_path + "%d.file" % num
 
             # Creates the file for the given directory
-            file = open(completeDir, "w")
+            file = open(completeDir, "wb")
 
             # End while when TCP connection closes
             while True:
@@ -145,7 +144,7 @@ stopping = Stopper()
 while not stopping.stop:
 
         clientSock, addr = sock.accept()
-        client_thread = threading.Thread(target=proc, args=(clientSock, i))
+        client_thread = threading.Thread(target=proc, args=(clientSock, save_path, i))
         client_thread.start()
 
         # Updates the number ordering of the threading and files being
