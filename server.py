@@ -75,7 +75,7 @@ def proc(clientSock, num):
         if i == 2:
 
             # Forming the path to the directory of which the file will be saved
-            completeDir = os.path.join(save_path, "/%d.file" % num)
+            completeDir = save_path + "/%d.file" % num
 
             # Creates the file for the given directory
             file = open(completeDir, "w")
