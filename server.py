@@ -4,11 +4,9 @@ import socket
 import sys
 import signal
 import os.path
-
-# import thread module
-# from _thread import *
 import threading
 
+##############################################################################
 # Creating a class of signals to process some errors
 class Stopper:
     stop = False
@@ -20,31 +18,8 @@ class Stopper:
     def interrupt_handler(self):
         self.stop = True
 
-# Setting up everything for the server to start listening
-try:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Suppose to help with the buffer when receiving data from client
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1)
 
-except socket.error:
-    sys.stderr.write("ERROR: ()Socket not created")
-    exit(0)
-
-# Buffer size for file reading from client side
-BUFFER_SIZE = 10000
-# try except block around bind to test for incorrect port number
-port = int(sys.argv[1])
-save_path = sys.argv[2]
-try:
-    sock.bind(("0.0.0.0", port))
-
-except socket.error:
-    sys.stderr.write("ERROR: ()Socket not created")
-    exit(0)
-
-# Buffers the connections, and accept takes each connection from the stored buffer
-sock.listen(10)
-
+##############################################################################
 # Procedure that makes the server send a "accio\r\n"
 # ... receives a message, then send another "accio\r\n" command
 # ... then after receiving the "confirm-accio-again\r\n\r\n" command
@@ -116,6 +91,8 @@ def proc(clientSock, num):
                     file.close()
                     break
 
+                # /n finder ???
+
                 file.write(m)
 
 
@@ -128,18 +105,48 @@ def proc(clientSock, num):
 
 
 
+
+##############################################################################
+# Setting up everything for the server to start listening
+try:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Suppose to help with the buffer when receiving data from client
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1)
+
+except socket.error:
+    sys.stderr.write("ERROR: ()Socket not created")
+    exit(1)
+
+# Buffer size for file reading from client side
+BUFFER_SIZE = 10000
+port = int(sys.argv[1])
+save_path = sys.argv[2]
+
+try:
+    sock.bind(("0.0.0.0", port))
+
+except socket.error:
+    sys.stderr.write("ERROR: ()Socket not created")
+    exit(1)
+
+# Buffers the connections, and "accept"
+# ... takes each connection from the stored buffer
+sock.listen(10)
+
+
+
+##############################################################################
 # This while loop keeps the socket and keeps connecting
 # ... to different IP addresses until an error occurs
 # This should handle threading the connections in parallel
 i = 1
 stopping = Stopper()
+
 while not stopping.stop:
+
         clientSock, addr = sock.accept()
-        thread = threading.Thread(target=proc, args=(clientSock, i))
-        thread.start()
-        # This has the effect of blocking the current thread until
-        # ... the target thread that has been joined has terminated.
-        thread.join()
+        client_thread = threading.Thread(target=proc, args=(clientSock, i))
+        client_thread.start()
 
         # Updates the number ordering of the threading and files being
         # ... saved into the directory
