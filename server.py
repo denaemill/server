@@ -1,5 +1,3 @@
-# Remember you changed exit(1) to exit(0)
-
 import socket
 import sys
 import signal
@@ -31,7 +29,17 @@ def proc(clientSock, save_path, num):
 
         i = 0
         msg = b""
+        error = b"ERROR"
         clientSock.send(b"accio\r\n")
+
+        # Forming the path to the directory of which the file will be saved
+        completeDir = save_path + "%d.file" % num
+
+        # Creates the file for the given directory
+        file = open(completeDir, "wb")
+
+        # Setting the timeout of the client socket
+        clientSock.settimeout(10)
 
         while i < 2:
 
@@ -73,12 +81,6 @@ def proc(clientSock, save_path, num):
         # Reading the specified file
         if i == 2:
 
-            # Forming the path to the directory of which the file will be saved
-            completeDir = save_path + "%d.file" % num
-
-            # Creates the file for the given directory
-            file = open(completeDir, "wb")
-
             # End while when TCP connection closes
             while True:
                 m = clientSock.recv(BUFFER_SIZE)
@@ -100,7 +102,12 @@ def proc(clientSock, save_path, num):
         clientSock.close()
 
     except socket.error:
-        print("ERROR: ()Address-related error connecting to client")
+        file.close()
+        file = open(completeDir, "wb")
+        file.write(error)
+        file.close()
+        clientSock.close()
+
 
 
 
@@ -125,8 +132,22 @@ try:
     sock.bind(("0.0.0.0", port))
 
 except socket.error:
-    sys.stderr.write("ERROR: ()Socket not created")
+    sys.stderr.write("ERROR: ()Socket not created.")
     exit(1)
+
+except ValueError:
+    sys.stderr.write("ERROR: ()Port out of range.")
+    exit(1)
+
+except TypeError:
+    sys.stderr.write("ERROR: ()Incorrect data type for port.")
+    exit(1)
+
+except socket.gaierror:
+    sys.stderr.write("ERROR: ()Address associated to socket is incorrect.")
+    exit(1)
+
+
 
 # Buffers the connections, and "accept"
 # ... takes each connection from the stored buffer
@@ -140,6 +161,8 @@ sock.listen(10)
 # This should handle threading the connections in parallel
 i = 1
 stopping = Stopper()
+
+# manage timeout for client_sock
 
 while not stopping.stop:
 
