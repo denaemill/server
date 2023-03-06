@@ -143,7 +143,7 @@ except TypeError:
     sys.stderr.write("ERROR: ()Incorrect data type for port.")
     exit(1)
 
-except socket.gaierror:
+except OverflowError:
     sys.stderr.write("ERROR: ()Address associated to socket is incorrect.")
     exit(1)
 
